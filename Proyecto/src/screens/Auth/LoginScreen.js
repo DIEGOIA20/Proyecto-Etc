@@ -1,11 +1,13 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { AuthContext } from '../../utils/AuthContext';
+import { getTheme } from '../../utils/theme';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useContext(AuthContext);
+  const { login, darkMode } = useContext(AuthContext);
+  const theme = getTheme(darkMode);
 
   const handleLogin = async () => {
     if (email && password) {
@@ -14,21 +16,23 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.card }]}>
       <Text style={styles.title}>MediCitas</Text>
-      <Text style={styles.subtitle}>Gestión de Pacientes y Citas</Text>
+      <Text style={[styles.subtitle, { color: theme.sub }]}>Gestión de Pacientes y Citas</Text>
 
       <View style={styles.form}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Correo Electrónico"
+          placeholderTextColor={theme.sub}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Contraseña"
+          placeholderTextColor={theme.sub}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -49,7 +53,6 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     padding: 20,
     justifyContent: 'center',
   },
@@ -62,7 +65,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 40,
   },
@@ -71,7 +73,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,

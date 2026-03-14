@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { AuthContext } from '../../utils/AuthContext';
+import { getTheme } from '../../utils/theme';
 
 export default function CrearCitaScreen({ navigation }) {
+  const { darkMode } = useContext(AuthContext);
+  const theme = getTheme(darkMode);
   const [paciente, setPaciente] = useState('');
   const [doctor, setDoctor] = useState('');
   const [fecha, setFecha] = useState('');
@@ -14,44 +18,49 @@ export default function CrearCitaScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.label}>Paciente</Text>
+    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]}>
+      <View style={[styles.form, { backgroundColor: theme.card }]}>
+        <Text style={[styles.label, { color: theme.text }]}>Paciente</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Seleccionar o escribir nombre"
+          placeholderTextColor={theme.sub}
           value={paciente}
           onChangeText={setPaciente}
         />
 
-        <Text style={styles.label}>Doctor/Especialista</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Doctor/Especialista</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Ej: Dr. Juan García"
+          placeholderTextColor={theme.sub}
           value={doctor}
           onChangeText={setDoctor}
         />
 
-        <Text style={styles.label}>Fecha</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Fecha</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="DD/MM/YYYY"
+          placeholderTextColor={theme.sub}
           value={fecha}
           onChangeText={setFecha}
         />
 
-        <Text style={styles.label}>Hora</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Hora</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="HH:MM"
+          placeholderTextColor={theme.sub}
           value={hora}
           onChangeText={setHora}
         />
 
-        <Text style={styles.label}>Motivo de la Consulta</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Motivo de la Consulta</Text>
         <TextInput
-          style={[styles.input, styles.textarea]}
+          style={[styles.input, styles.textarea, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Describa el motivo de la cita"
+          placeholderTextColor={theme.sub}
           value={motivo}
           onChangeText={setMotivo}
           multiline
@@ -69,29 +78,24 @@ export default function CrearCitaScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   form: {
     padding: 16,
-    backgroundColor: '#fff',
     margin: 16,
     borderRadius: 8,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
     marginTop: 16,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#111827',
   },
   textarea: {
     textAlignVertical: 'top',

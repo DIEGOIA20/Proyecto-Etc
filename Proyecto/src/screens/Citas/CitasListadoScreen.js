@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { AuthContext } from '../../utils/AuthContext';
+import { getTheme } from '../../utils/theme';
 
 export default function CitasListadoScreen({ navigation }) {
+  const { darkMode } = useContext(AuthContext);
+  const theme = getTheme(darkMode);
   const [citas, setCitas] = useState([
     {
       id: '1',
@@ -38,28 +42,28 @@ export default function CitasListadoScreen({ navigation }) {
 
   const renderCita = ({ item }) => (
     <TouchableOpacity
-      style={styles.citaCard}
+      style={[styles.citaCard, { backgroundColor: theme.card }]}
       onPress={() => navigation.navigate('EditarCita', { cita: item })}
     >
       <View style={styles.citaHeader}>
-        <Text style={styles.pacienteName}>{item.paciente}</Text>
+        <Text style={[styles.pacienteName, { color: theme.text }]}>{item.paciente}</Text>
         <View style={[styles.estado, { backgroundColor: getEstadoColor(item.estado) }]}>
           <Text style={styles.estadoText}>{item.estado}</Text>
         </View>
       </View>
       <Text style={styles.doctor}>{item.doctor}</Text>
-      <View style={styles.citaDetails}>
-        <Text style={styles.detail}>📅 {item.fecha}</Text>
-        <Text style={styles.detail}>🕙 {item.hora}</Text>
-        <Text style={styles.detail}>📝 {item.motivo}</Text>
+      <View style={[styles.citaDetails, { backgroundColor: theme.detailBg }]}>
+        <Text style={[styles.detail, { color: theme.sub }]}>📅 {item.fecha}</Text>
+        <Text style={[styles.detail, { color: theme.sub }]}>🕙 {item.hora}</Text>
+        <Text style={[styles.detail, { color: theme.sub }]}>📝 {item.motivo}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Citas Médicas</Text>
+        <Text style={[styles.title, { color: theme.title }]}>Citas Médicas</Text>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => navigation.navigate('CrearCita')}
@@ -81,7 +85,6 @@ export default function CitasListadoScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
     padding: 16,
   },
   header: {
@@ -93,7 +96,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
   },
   addButton: {
     backgroundColor: '#4F46E5',
@@ -110,7 +112,6 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   citaCard: {
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 14,
     marginBottom: 12,
@@ -124,7 +125,6 @@ const styles = StyleSheet.create({
   pacienteName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
   },
   estado: {
     paddingHorizontal: 8,
@@ -143,13 +143,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   citaDetails: {
-    backgroundColor: '#F3F4F6',
     borderRadius: 6,
     padding: 10,
   },
   detail: {
     fontSize: 12,
-    color: '#6B7280',
     marginBottom: 4,
   },
 });

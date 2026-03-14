@@ -1,9 +1,11 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Switch, StyleSheet } from 'react-native';
 import { AuthContext } from '../../utils/AuthContext';
+import { getTheme } from '../../utils/theme';
 
 export default function PerfilScreen({ navigation }) {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, darkMode, toggleDarkMode } = useContext(AuthContext);
+  const theme = getTheme(darkMode);
   const [nombreCompleto, setNombreCompleto] = useState('');
   const [email, setEmail] = useState(user?.email || '');
   const [telefono, setTelefono] = useState('');
@@ -20,7 +22,7 @@ export default function PerfilScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]}>
       <View style={styles.header}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>👤</Text>
@@ -28,42 +30,62 @@ export default function PerfilScreen({ navigation }) {
         <Text style={styles.userName}>{user?.email || 'Usuario'}</Text>
       </View>
 
-      <View style={styles.form}>
-        <Text style={styles.sectionTitle}>Mi Perfil</Text>
+      <View style={[styles.form, { backgroundColor: theme.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.title }]}>Apariencia</Text>
+        <View style={styles.settingRow}>
+          <View>
+            <Text style={[styles.label, { color: theme.text }]}>Modo Oscuro</Text>
+            <Text style={[styles.settingDesc, { color: theme.sub }]}>Cambiar el tema de la aplicación</Text>
+          </View>
+          <Switch
+            value={darkMode}
+            onValueChange={toggleDarkMode}
+            trackColor={{ false: '#E5E7EB', true: '#6366F1' }}
+            thumbColor={darkMode ? '#4F46E5' : '#F3F4F6'}
+          />
+        </View>
+      </View>
 
-        <Text style={styles.label}>Nombre Completo</Text>
+      <View style={[styles.form, { backgroundColor: theme.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.title }]}>Mi Perfil</Text>
+
+        <Text style={[styles.label, { color: theme.text }]}>Nombre Completo</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Ingrese su nombre completo"
+          placeholderTextColor={theme.sub}
           value={nombreCompleto}
           onChangeText={setNombreCompleto}
           editable={isEditing}
         />
 
-        <Text style={styles.label}>Correo Electrónico</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Correo Electrónico</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Correo electrónico"
+          placeholderTextColor={theme.sub}
           value={email}
           onChangeText={setEmail}
           editable={isEditing}
           keyboardType="email-address"
         />
 
-        <Text style={styles.label}>Teléfono</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Teléfono</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Teléfono"
+          placeholderTextColor={theme.sub}
           value={telefono}
           onChangeText={setTelefono}
           editable={isEditing}
           keyboardType="phone-pad"
         />
 
-        <Text style={styles.label}>Especialidad/Rol</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Especialidad/Rol</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Ej: Médico General"
+          placeholderTextColor={theme.sub}
           value={especialidad}
           onChangeText={setEspecialidad}
           editable={isEditing}
@@ -94,14 +116,14 @@ export default function PerfilScreen({ navigation }) {
         )}
       </View>
 
-      <View style={styles.form}>
-        <Text style={styles.sectionTitle}>Seguridad</Text>
+      <View style={[styles.form, { backgroundColor: theme.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.title }]}>Seguridad</Text>
         <TouchableOpacity style={styles.changePasswordButton}>
           <Text style={styles.buttonText}>Cambiar Contraseña</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.form}>
+      <View style={[styles.form, { backgroundColor: theme.card }]}>
         <TouchableOpacity
           style={styles.logoutButton}
           onPress={handleLogout}
@@ -142,31 +164,35 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   form: {
-    backgroundColor: '#fff',
     margin: 16,
     borderRadius: 8,
     padding: 16,
   },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  settingDesc: {
+    fontSize: 12,
+    marginTop: 2,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
     marginBottom: 16,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#111827',
     marginBottom: 12,
   },
   editButton: {

@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, Switch, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { AuthContext } from '../../utils/AuthContext';
+import { getTheme } from '../../utils/theme';
 
 export default function ConfiguracionScreen() {
-  const [modoOscuro, setModoOscuro] = useState(false);
+  const { darkMode, toggleDarkMode } = useContext(AuthContext);
+  const modoOscuro = darkMode;
+  const setModoOscuro = toggleDarkMode;
   const [notificacionesCitas, setNotificacionesCitas] = useState(true);
   const [notificacionesNotas, setNotificacionesNotas] = useState(true);
   const [recuerdoAnticipado, setRecuerdoAnticipado] = useState('24h');
 
+  const theme = getTheme(darkMode);
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Apariencia</Text>
+    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]}>
+      <View style={[styles.section, { backgroundColor: theme.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.title }]}>Apariencia</Text>
 
         <View style={styles.settingRow}>
           <View>
@@ -26,13 +32,13 @@ export default function ConfiguracionScreen() {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Notificaciones</Text>
+      <View style={[styles.section, { backgroundColor: theme.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.title }]}>Notificaciones</Text>
 
         <View style={styles.settingRow}>
           <View>
-            <Text style={styles.settingLabel}>Recordatorio de Citas</Text>
-            <Text style={styles.settingDescription}>Recibir notificaciones de citas</Text>
+            <Text style={[styles.settingLabel, { color: theme.text }]}>Recordatorio de Citas</Text>
+            <Text style={[styles.settingDescription, { color: theme.sub }]}>Recibir notificaciones de citas</Text>
           </View>
           <Switch
             value={notificacionesCitas}
@@ -46,8 +52,8 @@ export default function ConfiguracionScreen() {
 
         <View style={styles.settingRow}>
           <View>
-            <Text style={styles.settingLabel}>Notificaciones de Notas</Text>
-            <Text style={styles.settingDescription}>Alertas sobre nuevas notas médicas</Text>
+            <Text style={[styles.settingLabel, { color: theme.text }]}>Notificaciones de Notas</Text>
+            <Text style={[styles.settingDescription, { color: theme.sub }]}>Alertas sobre nuevas notas médicas</Text>
           </View>
           <Switch
             value={notificacionesNotas}
@@ -60,8 +66,8 @@ export default function ConfiguracionScreen() {
         <View style={styles.separator} />
 
         <View style={styles.settingBox}>
-          <Text style={styles.settingLabel}>Recordatorio Anticipado</Text>
-          <Text style={styles.settingDescription}>¿Cuándo desea recordar las citas?</Text>
+          <Text style={[styles.settingLabel, { color: theme.text }]}>Recordatorio Anticipado</Text>
+          <Text style={[styles.settingDescription, { color: theme.sub }]}>¿Cuándo desea recordar las citas?</Text>
           <View style={styles.optionsContainer}>
             {['15m', '1h', '24h', '48h'].map(option => (
               <TouchableOpacity
@@ -86,12 +92,12 @@ export default function ConfiguracionScreen() {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Información</Text>
+      <View style={[styles.section, { backgroundColor: theme.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.title }]}>Información</Text>
 
         <View style={styles.infoBox}>
-          <Text style={styles.infoLabel}>Versión de la App</Text>
-          <Text style={styles.infoValue}>1.0.0</Text>
+          <Text style={[styles.infoLabel, { color: theme.text }]}>Versión de la App</Text>
+          <Text style={[styles.infoValue, { color: theme.sub }]}>1.0.0</Text>
         </View>
 
         <TouchableOpacity style={styles.linkButton}>
@@ -113,17 +119,14 @@ export default function ConfiguracionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   section: {
-    backgroundColor: '#fff',
     marginVertical: 8,
     paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
     paddingVertical: 16,
     paddingHorizontal: 0,
   },
@@ -138,12 +141,10 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#111827',
     marginBottom: 4,
   },
   settingDescription: {
     fontSize: 12,
-    color: '#9CA3AF',
   },
   separator: {
     height: 1,
@@ -189,11 +190,9 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#111827',
   },
   infoValue: {
     fontSize: 14,
-    color: '#6B7280',
   },
   linkButton: {
     paddingVertical: 14,

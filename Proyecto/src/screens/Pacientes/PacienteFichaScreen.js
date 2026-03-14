@@ -1,24 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { AuthContext } from '../../utils/AuthContext';
+import { getTheme } from '../../utils/theme';
 
 export default function PacienteFichaScreen({ route, navigation }) {
+  const { darkMode } = useContext(AuthContext);
+  const theme = getTheme(darkMode);
   const { paciente } = route.params;
   const [activeTab, setActiveTab] = useState('info');
 
   const renderInfo = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Información Personal</Text>
-      <View style={styles.infoRow}>
-        <Text style={styles.label}>Nombre:</Text>
-        <Text style={styles.value}>{paciente.nombre}</Text>
+      <Text style={[styles.sectionTitle, { color: theme.title }]}>Información Personal</Text>
+      <View style={[styles.infoRow, { borderBottomColor: theme.border }]}>
+        <Text style={[styles.label, { color: theme.sub }]}>Nombre:</Text>
+        <Text style={[styles.value, { color: theme.text }]}>{paciente.nombre}</Text>
       </View>
-      <View style={styles.infoRow}>
-        <Text style={styles.label}>Edad:</Text>
-        <Text style={styles.value}>{paciente.edad} años</Text>
+      <View style={[styles.infoRow, { borderBottomColor: theme.border }]}>
+        <Text style={[styles.label, { color: theme.sub }]}>Edad:</Text>
+        <Text style={[styles.value, { color: theme.text }]}>{paciente.edad} años</Text>
       </View>
-      <View style={styles.infoRow}>
-        <Text style={styles.label}>Teléfono:</Text>
-        <Text style={styles.value}>{paciente.telefono}</Text>
+      <View style={[styles.infoRow, { borderBottomColor: theme.border }]}>
+        <Text style={[styles.label, { color: theme.sub }]}>Teléfono:</Text>
+        <Text style={[styles.value, { color: theme.text }]}>{paciente.telefono}</Text>
       </View>
 
       <TouchableOpacity
@@ -32,9 +36,9 @@ export default function PacienteFichaScreen({ route, navigation }) {
 
   const renderCitas = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Citas Médicas</Text>
+      <Text style={[styles.sectionTitle, { color: theme.title }]}>Citas Médicas</Text>
       <View style={styles.emptyState}>
-        <Text style={styles.emptyText}>No hay citas registradas</Text>
+        <Text style={[styles.emptyText, { color: theme.sub }]}>No hay citas registradas</Text>
       </View>
       <TouchableOpacity
         style={styles.addButton}
@@ -47,9 +51,9 @@ export default function PacienteFichaScreen({ route, navigation }) {
 
   const renderNotas = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Notas Médicas</Text>
+      <Text style={[styles.sectionTitle, { color: theme.title }]}>Notas Médicas</Text>
       <View style={styles.emptyState}>
-        <Text style={styles.emptyText}>Sin notas registradas</Text>
+        <Text style={[styles.emptyText, { color: theme.sub }]}>Sin notas registradas</Text>
       </View>
       <TouchableOpacity
         style={styles.addButton}
@@ -61,12 +65,12 @@ export default function PacienteFichaScreen({ route, navigation }) {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]}>
       <View style={styles.header}>
         <Text style={styles.pacienteName}>{paciente.nombre}</Text>
       </View>
 
-      <View style={styles.tabs}>
+      <View style={[styles.tabs, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'info' && styles.activeTab]}
           onPress={() => setActiveTab('info')}
@@ -103,7 +107,6 @@ export default function PacienteFichaScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   header: {
     backgroundColor: '#4F46E5',
@@ -117,9 +120,7 @@ const styles = StyleSheet.create({
   },
   tabs: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   tab: {
     flex: 1,
@@ -145,7 +146,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
     marginBottom: 16,
   },
   infoRow: {
@@ -153,16 +153,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
   },
   value: {
     fontSize: 14,
-    color: '#111827',
     fontWeight: '500',
   },
   editButton: {

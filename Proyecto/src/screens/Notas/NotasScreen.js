@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { AuthContext } from '../../utils/AuthContext';
+import { getTheme } from '../../utils/theme';
 
 export default function NotasScreen({ navigation }) {
+  const { darkMode } = useContext(AuthContext);
+  const theme = getTheme(darkMode);
   const [paciente, setPaciente] = useState('');
   const [peso, setPeso] = useState('');
   const [presionArterial, setPresionArterial] = useState('');
@@ -14,51 +18,56 @@ export default function NotasScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.sectionTitle}>Información del Paciente</Text>
+    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]}>
+      <View style={[styles.form, { backgroundColor: theme.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.title }]}>Información del Paciente</Text>
 
-        <Text style={styles.label}>Paciente</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Paciente</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Seleccionar paciente"
+          placeholderTextColor={theme.sub}
           value={paciente}
           onChangeText={setPaciente}
         />
 
-        <Text style={styles.sectionTitle}>Signos Vitales</Text>
+        <Text style={[styles.sectionTitle, { color: theme.title }]}>Signos Vitales</Text>
 
-        <Text style={styles.label}>Peso (kg)</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Peso (kg)</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Ej: 75.5"
+          placeholderTextColor={theme.sub}
           value={peso}
           onChangeText={setPeso}
           keyboardType="decimal-pad"
         />
 
-        <Text style={styles.label}>Presión Arterial (mmHg)</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Presión Arterial (mmHg)</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Ej: 120/80"
+          placeholderTextColor={theme.sub}
           value={presionArterial}
           onChangeText={setPresionArterial}
         />
 
-        <Text style={styles.label}>Temperatura (°C)</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Temperatura (°C)</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Ej: 37.5"
+          placeholderTextColor={theme.sub}
           value={temperatura}
           onChangeText={setTemperatura}
           keyboardType="decimal-pad"
         />
 
-        <Text style={styles.sectionTitle}>Nota Médica</Text>
+        <Text style={[styles.sectionTitle, { color: theme.title }]}>Nota Médica</Text>
 
         <TextInput
-          style={[styles.input, styles.textarea]}
+          style={[styles.input, styles.textarea, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           placeholder="Escribir observaciones médicas..."
+          placeholderTextColor={theme.sub}
           value={notaMedica}
           onChangeText={setNotaMedica}
           multiline
@@ -76,35 +85,29 @@ export default function NotasScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   form: {
     padding: 16,
-    backgroundColor: '#fff',
     margin: 16,
     borderRadius: 8,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
     marginTop: 20,
     marginBottom: 12,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#111827',
     marginBottom: 12,
   },
   textarea: {

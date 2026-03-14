@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { AuthContext } from '../../utils/AuthContext';
+import { getTheme } from '../../utils/theme';
 
 export default function EditarPacienteScreen({ route, navigation }) {
+  const { darkMode } = useContext(AuthContext);
+  const theme = getTheme(darkMode);
   const { paciente } = route.params;
   const [nombre, setNombre] = useState(paciente?.nombre || '');
   const [edad, setEdad] = useState(paciente?.edad?.toString() || '');
@@ -20,42 +24,42 @@ export default function EditarPacienteScreen({ route, navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.label}>Nombre Completo</Text>
+    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]}>
+      <View style={[styles.form, { backgroundColor: theme.card }]}>
+        <Text style={[styles.label, { color: theme.text }]}>Nombre Completo</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           value={nombre}
           onChangeText={setNombre}
         />
 
-        <Text style={styles.label}>Edad</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Edad</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           value={edad}
           onChangeText={setEdad}
           keyboardType="numeric"
         />
 
-        <Text style={styles.label}>Teléfono</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Teléfono</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           value={telefono}
           onChangeText={setTelefono}
           keyboardType="phone-pad"
         />
 
-        <Text style={styles.label}>Correo Electrónico</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Correo Electrónico</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
         />
 
-        <Text style={styles.label}>Alergias</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Alergias</Text>
         <TextInput
-          style={[styles.input, styles.textarea]}
+          style={[styles.input, styles.textarea, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
           value={alergias}
           onChangeText={setAlergias}
           multiline
@@ -77,29 +81,24 @@ export default function EditarPacienteScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   form: {
     padding: 16,
-    backgroundColor: '#fff',
     margin: 16,
     borderRadius: 8,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
     marginTop: 16,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#111827',
   },
   textarea: {
     textAlignVertical: 'top',
