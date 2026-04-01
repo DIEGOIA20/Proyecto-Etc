@@ -1,13 +1,41 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from '../../utils/AuthContext';
 import { getTheme } from '../../utils/theme';
+import { getAppointments, getNotes, getPatientById } from '../../utils/database';
 
 export default function PacienteFichaScreen({ route, navigation }) {
   const { darkMode } = useContext(AuthContext);
   const theme = getTheme(darkMode);
-  const { paciente } = route.params;
+  const { paciente: pacienteParam } = route.params;
+  const [paciente, setPaciente] = useState(pacienteParam);
   const [activeTab, setActiveTab] = useState('info');
+  const [citas, setCitas] = useState([]);
+  const [notas, setNotas] = useState([]);
+
+  const loadData = useCallback(async () => {
+    if (!paciente?.id) {
+      return;
+    }
+    const [patientRows, citasRows, notasRows] = await Promise.all([
+      getPatientById(paciente.id),
+      getAppointments({ patientId: paciente.id, includeCancelled: true }),
+      getNotes({ patientId: paciente.id }),
+    ]);
+
+    if (patientRows) {
+      setPaciente(patientRows);
+    }
+    setCitas(citasRows);
+    setNotas(notasRows);
+  }, [paciente?.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   const renderInfo = () => (
     <View style={styles.section}>
@@ -24,6 +52,18 @@ export default function PacienteFichaScreen({ route, navigation }) {
         <Text style={[styles.label, { color: theme.sub }]}>Teléfono:</Text>
         <Text style={[styles.value, { color: theme.text }]}>{paciente.telefono}</Text>
       </View>
+      <View style={[styles.infoRow, { borderBottomColor: theme.border }]}>
+        <Text style={[styles.label, { color: theme.sub }]}>Foto (URI):</Text>
+        <Text style={[styles.value, { color: theme.text }]}>{paciente.fotoUri || 'No registrada'}</Text>
+      </View>
+      <View style={[styles.infoRow, { borderBottomColor: theme.border }]}>
+        <Text style={[styles.label, { color: theme.sub }]}>Especialidad:</Text>
+        <Text style={[styles.value, { color: theme.text }]}>{paciente.especialidadPreferida || 'No asignada'}</Text>
+      </View>
+      <View style={[styles.infoRow, { borderBottomColor: theme.border }]}>
+        <Text style={[styles.label, { color: theme.sub }]}>Doctor referente:</Text>
+        <Text style={[styles.value, { color: theme.text }]}>{paciente.doctorReferente || 'No asignado'}</Text>
+      </View>
 
       <TouchableOpacity
         style={styles.editButton}
@@ -37,12 +77,23 @@ export default function PacienteFichaScreen({ route, navigation }) {
   const renderCitas = () => (
     <View style={styles.section}>
       <Text style={[styles.sectionTitle, { color: theme.title }]}>Citas Médicas</Text>
-      <View style={styles.emptyState}>
-        <Text style={[styles.emptyText, { color: theme.sub }]}>No hay citas registradas</Text>
-      </View>
+      {citas.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={[styles.emptyText, { color: theme.sub }]}>No hay citas registradas</Text>
+        </View>
+      ) : (
+        citas.map((cita) => (
+          <View key={cita.id} style={{ marginBottom: 12, borderWidth: 1, borderColor: theme.border, borderRadius: 6, padding: 10 }}>
+            <Text style={{ color: theme.text, fontWeight: '600' }}>{cita.fecha} {cita.hora}</Text>
+            <Text style={{ color: theme.sub }}>{cita.doctor}</Text>
+            <Text style={{ color: theme.sub }}>{cita.motivo}</Text>
+            <Text style={{ color: theme.sub }}>Estado: {cita.estado}</Text>
+          </View>
+        ))
+      )}
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => navigation.navigate('CrearCita')}
+        onPress={() => navigation.navigate('CrearCita', { patientId: paciente.id, pacienteNombre: paciente.nombre })}
       >
         <Text style={styles.addButtonText}>+ Agendar Cita</Text>
       </TouchableOpacity>
@@ -52,12 +103,24 @@ export default function PacienteFichaScreen({ route, navigation }) {
   const renderNotas = () => (
     <View style={styles.section}>
       <Text style={[styles.sectionTitle, { color: theme.title }]}>Notas Médicas</Text>
-      <View style={styles.emptyState}>
-        <Text style={[styles.emptyText, { color: theme.sub }]}>Sin notas registradas</Text>
-      </View>
+      {notas.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={[styles.emptyText, { color: theme.sub }]}>Sin notas registradas</Text>
+        </View>
+      ) : (
+        notas.map((nota) => (
+          <View key={nota.id} style={{ marginBottom: 12, borderWidth: 1, borderColor: theme.border, borderRadius: 6, padding: 10 }}>
+            <Text style={{ color: theme.text, fontWeight: '600' }}>Peso: {nota.peso ?? '-'} kg</Text>
+            <Text style={{ color: theme.sub }}>Presion: {nota.presionArterial || '-'}</Text>
+            <Text style={{ color: theme.sub }}>Temperatura: {nota.temperatura ?? '-'}</Text>
+            <Text style={{ color: theme.sub }}>{nota.notaMedica || 'Sin observaciones'}</Text>
+            <Text style={{ color: theme.sub }}>Foto (URI): {nota.fotoUri || 'No registrada'}</Text>
+          </View>
+        ))
+      )}
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => navigation.navigate('Notas')}
+        onPress={() => navigation.navigate('Notas', { patientId: paciente.id, pacienteNombre: paciente.nombre })}
       >
         <Text style={styles.addButtonText}>+ Agregar Nota</Text>
       </TouchableOpacity>

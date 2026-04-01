@@ -1,7 +1,8 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React, { useState, useContext, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { AuthContext } from '../../utils/AuthContext';
 import { getTheme } from '../../utils/theme';
+import { createPatient, getDoctors, getDoctorSpecialties } from '../../utils/database';
 
 export default function CrearPacienteScreen({ navigation }) {
   const { darkMode } = useContext(AuthContext);
@@ -11,10 +12,50 @@ export default function CrearPacienteScreen({ navigation }) {
   const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
   const [alergias, setAlergias] = useState('');
+  const [especialidadPreferida, setEspecialidadPreferida] = useState('');
+  const [doctorReferente, setDoctorReferente] = useState('');
+  const [especialidades, setEspecialidades] = useState([]);
+  const [doctores, setDoctores] = useState([]);
+  const [fotoUri, setFotoUri] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleCrear = () => {
-    // Aquí iría la lógica para guardar en BD local
-    navigation.goBack();
+  useEffect(() => {
+    const loadDoctorsData = async () => {
+      const [specialtiesRows, doctorsRows] = await Promise.all([
+        getDoctorSpecialties({ onlyActive: true }),
+        getDoctors({ onlyActive: true }),
+      ]);
+      setEspecialidades(specialtiesRows);
+      setDoctores(doctorsRows);
+    };
+
+    loadDoctorsData();
+  }, []);
+
+  const handleCrear = async () => {
+    if (!nombre.trim()) {
+      Alert.alert('Dato requerido', 'El nombre del paciente es obligatorio.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await createPatient({
+        nombre: nombre.trim(),
+        edad: edad.trim(),
+        telefono: telefono.trim(),
+        email: email.trim(),
+        alergias: alergias.trim(),
+        especialidadPreferida: especialidadPreferida.trim(),
+        doctorReferente: doctorReferente.trim(),
+        fotoUri: fotoUri.trim(),
+      });
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar el paciente.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -70,8 +111,83 @@ export default function CrearPacienteScreen({ navigation }) {
           numberOfLines={4}
         />
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleCrear}>
-          <Text style={styles.submitButtonText}>Crear Paciente</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Especialidad Preferida</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
+          placeholder="Selecciona o escribe una especialidad"
+          placeholderTextColor={theme.sub}
+          value={especialidadPreferida}
+          onChangeText={(value) => {
+            setEspecialidadPreferida(value);
+            setDoctorReferente('');
+          }}
+        />
+        {especialidadPreferida.length > 0 && (
+          <View style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 6, marginBottom: 8 }}>
+            {especialidades
+              .filter((item) => item.toLowerCase().includes(especialidadPreferida.toLowerCase()))
+              .slice(0, 5)
+              .map((item) => (
+                <TouchableOpacity
+                  key={item}
+                  onPress={() => {
+                    setEspecialidadPreferida(item);
+                    setDoctorReferente('');
+                  }}
+                  style={{ padding: 10, borderBottomWidth: 1, borderBottomColor: theme.border }}
+                >
+                  <Text style={{ color: theme.text }}>{item}</Text>
+                </TouchableOpacity>
+              ))}
+          </View>
+        )}
+
+        <Text style={[styles.label, { color: theme.text }]}>Doctor Referente</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
+          placeholder="Selecciona doctor por especialidad"
+          placeholderTextColor={theme.sub}
+          value={doctorReferente}
+          onChangeText={setDoctorReferente}
+        />
+        {doctorReferente.length >= 0 && (
+          <View style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 6, marginBottom: 8 }}>
+            {doctores
+              .filter((item) => {
+                const bySpecialty = !especialidadPreferida.trim() || item.especialidad.toLowerCase() === especialidadPreferida.trim().toLowerCase();
+                const byName = !doctorReferente.trim() || item.nombre.toLowerCase().includes(doctorReferente.toLowerCase());
+                return bySpecialty && byName;
+              })
+              .slice(0, 5)
+              .map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => {
+                    setDoctorReferente(item.nombre);
+                    if (!especialidadPreferida) {
+                      setEspecialidadPreferida(item.especialidad);
+                    }
+                  }}
+                  style={{ padding: 10, borderBottomWidth: 1, borderBottomColor: theme.border }}
+                >
+                  <Text style={{ color: theme.text }}>{item.nombre}</Text>
+                  <Text style={{ color: theme.sub, fontSize: 12 }}>{item.especialidad}</Text>
+                </TouchableOpacity>
+              ))}
+          </View>
+        )}
+
+        <Text style={[styles.label, { color: theme.text }]}>Foto (URI opcional)</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
+          placeholder="Ej: https://... o file://..."
+          placeholderTextColor={theme.sub}
+          value={fotoUri}
+          onChangeText={setFotoUri}
+        />
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleCrear} disabled={submitting}>
+          <Text style={styles.submitButtonText}>{submitting ? 'Guardando...' : 'Crear Paciente'}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

@@ -1,24 +1,60 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Switch, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Switch, StyleSheet, Alert } from 'react-native';
 import { AuthContext } from '../../utils/AuthContext';
 import { getTheme } from '../../utils/theme';
 
 export default function PerfilScreen({ navigation }) {
-  const { user, logout, darkMode, toggleDarkMode } = useContext(AuthContext);
+  const { user, logout, darkMode, toggleDarkMode, saveProfile, changePassword } = useContext(AuthContext);
   const theme = getTheme(darkMode);
-  const [nombreCompleto, setNombreCompleto] = useState('');
+  const [nombreCompleto, setNombreCompleto] = useState(user?.nombreCompleto || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [telefono, setTelefono] = useState('');
-  const [especialidad, setEspecialidad] = useState('');
+  const [telefono, setTelefono] = useState(user?.telefono || '');
+  const [especialidad, setEspecialidad] = useState(user?.especialidad || '');
   const [isEditing, setIsEditing] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  const handleGuardarCambios = () => {
-    // Aquí iría la lógica para guardar cambios en BD local
-    setIsEditing(false);
+  const handleGuardarCambios = async () => {
+    try {
+      await saveProfile({ nombreCompleto, telefono, especialidad });
+      setIsEditing(false);
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar el perfil.');
+    }
   };
 
   const handleLogout = async () => {
     await logout();
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert('Campos requeridos', 'Completa todos los campos de contraseña.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      Alert.alert('Contraseña débil', 'La nueva contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert('No coincide', 'La confirmación debe coincidir con la nueva contraseña.');
+      return;
+    }
+
+    try {
+      await changePassword(currentPassword, newPassword);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setIsChangingPassword(false);
+      Alert.alert('Éxito', 'Tu contraseña fue actualizada.');
+    } catch (error) {
+      Alert.alert('Error', error.message || 'No se pudo cambiar la contraseña.');
+    }
   };
 
   return (
@@ -118,9 +154,64 @@ export default function PerfilScreen({ navigation }) {
 
       <View style={[styles.form, { backgroundColor: theme.card }]}>
         <Text style={[styles.sectionTitle, { color: theme.title }]}>Seguridad</Text>
-        <TouchableOpacity style={styles.changePasswordButton}>
-          <Text style={styles.buttonText}>Cambiar Contraseña</Text>
-        </TouchableOpacity>
+        {!isChangingPassword ? (
+          <TouchableOpacity
+            style={styles.changePasswordButton}
+            onPress={() => setIsChangingPassword(true)}
+          >
+            <Text style={styles.buttonText}>Cambiar Contraseña</Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            <Text style={[styles.label, { color: theme.text }]}>Contraseña Actual</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
+              placeholder="Contraseña actual"
+              placeholderTextColor={theme.sub}
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              secureTextEntry
+            />
+
+            <Text style={[styles.label, { color: theme.text }]}>Nueva Contraseña</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
+              placeholder="Nueva contraseña"
+              placeholderTextColor={theme.sub}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+            />
+
+            <Text style={[styles.label, { color: theme.text }]}>Confirmar Nueva Contraseña</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
+              placeholder="Confirmar nueva contraseña"
+              placeholderTextColor={theme.sub}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+            />
+
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleChangePassword}
+            >
+              <Text style={styles.buttonText}>Guardar Nueva Contraseña</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => {
+                setIsChangingPassword(false);
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+              }}
+            >
+              <Text style={styles.buttonText}>Cancelar</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
 
       <View style={[styles.form, { backgroundColor: theme.card }]}>

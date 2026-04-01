@@ -1,31 +1,32 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useContext, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Switch } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from '../../utils/AuthContext';
 import { getTheme } from '../../utils/theme';
+import { getAppointments } from '../../utils/database';
+import { notifyUpcomingAppointmentsInApp } from '../../utils/notifications';
 
 export default function CitasListadoScreen({ navigation }) {
-  const { darkMode } = useContext(AuthContext);
+  const { darkMode, settings } = useContext(AuthContext);
   const theme = getTheme(darkMode);
-  const [citas, setCitas] = useState([
-    {
-      id: '1',
-      paciente: 'Juan Pérez',
-      doctor: 'Dr. Carlos García',
-      fecha: '2024-03-15',
-      hora: '10:00',
-      motivo: 'Revisión general',
-      estado: 'Programada',
-    },
-    {
-      id: '2',
-      paciente: 'María García',
-      doctor: 'Dra. Ana López',
-      fecha: '2024-03-16',
-      hora: '14:30',
-      motivo: 'Seguimiento',
-      estado: 'Confirmada',
-    },
-  ]);
+  const [citas, setCitas] = useState([]);
+  const [includeCancelled, setIncludeCancelled] = useState(true);
+
+  const loadAppointments = useCallback(async () => {
+    try {
+      const rows = await getAppointments({ includeCancelled });
+      setCitas(rows);
+      notifyUpcomingAppointmentsInApp(rows, settings?.reminderWindow || '24h');
+    } catch (error) {
+      Alert.alert('Error', 'No se pudieron cargar las citas.');
+    }
+  }, [includeCancelled, settings?.reminderWindow]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadAppointments();
+    }, [loadAppointments])
+  );
 
   const getEstadoColor = (estado) => {
     switch (estado) {
@@ -72,11 +73,21 @@ export default function CitasListadoScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+        <Text style={{ color: theme.sub, marginRight: 8 }}>Mostrar canceladas</Text>
+        <Switch value={includeCancelled} onValueChange={setIncludeCancelled} />
+      </View>
+
       <FlatList
         data={citas}
-        keyExtractor={item => item.id}
+        keyExtractor={item => String(item.id)}
         renderItem={renderCita}
         contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <Text style={{ color: theme.sub, textAlign: 'center', marginTop: 24 }}>
+            No hay citas registradas.
+          </Text>
+        }
       />
     </View>
   );
@@ -86,15 +97,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    paddingTop: 12,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
   },
   addButton: {

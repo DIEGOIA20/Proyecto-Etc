@@ -4,12 +4,12 @@ import { AuthContext } from '../../utils/AuthContext';
 import { getTheme } from '../../utils/theme';
 
 export default function ConfiguracionScreen() {
-  const { darkMode, toggleDarkMode } = useContext(AuthContext);
+  const { darkMode, toggleDarkMode, settings, updateAppSettings } = useContext(AuthContext);
   const modoOscuro = darkMode;
   const setModoOscuro = toggleDarkMode;
-  const [notificacionesCitas, setNotificacionesCitas] = useState(true);
-  const [notificacionesNotas, setNotificacionesNotas] = useState(true);
-  const [recuerdoAnticipado, setRecuerdoAnticipado] = useState('24h');
+  const [notificacionesCitas, setNotificacionesCitas] = useState(settings.notificationsCitas);
+  const [notificacionesNotas, setNotificacionesNotas] = useState(settings.notificationsNotas);
+  const [recuerdoAnticipado, setRecuerdoAnticipado] = useState(settings.reminderWindow);
 
   const theme = getTheme(darkMode);
 
@@ -42,7 +42,10 @@ export default function ConfiguracionScreen() {
           </View>
           <Switch
             value={notificacionesCitas}
-            onValueChange={setNotificacionesCitas}
+            onValueChange={(value) => {
+              setNotificacionesCitas(value);
+              updateAppSettings({ notificationsCitas: value });
+            }}
             trackColor={{ false: '#E5E7EB', true: '#10B981' }}
             thumbColor={notificacionesCitas ? '#059669' : '#F3F4F6'}
           />
@@ -57,7 +60,10 @@ export default function ConfiguracionScreen() {
           </View>
           <Switch
             value={notificacionesNotas}
-            onValueChange={setNotificacionesNotas}
+            onValueChange={(value) => {
+              setNotificacionesNotas(value);
+              updateAppSettings({ notificationsNotas: value });
+            }}
             trackColor={{ false: '#E5E7EB', true: '#10B981' }}
             thumbColor={notificacionesNotas ? '#059669' : '#F3F4F6'}
           />
@@ -76,7 +82,10 @@ export default function ConfiguracionScreen() {
                   styles.optionButton,
                   recuerdoAnticipado === option && styles.optionButtonActive,
                 ]}
-                onPress={() => setRecuerdoAnticipado(option)}
+                onPress={() => {
+                  setRecuerdoAnticipado(option);
+                  updateAppSettings({ reminderWindow: option });
+                }}
               >
                 <Text
                   style={[

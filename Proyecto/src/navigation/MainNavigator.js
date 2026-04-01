@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { AuthContext } from '../utils/AuthContext';
+import { getTheme } from '../utils/theme';
 
 // Screens
 import PacientesListadoScreen from '../screens/Pacientes/PacientesListadoScreen';
@@ -11,6 +14,8 @@ import PacienteFichaScreen from '../screens/Pacientes/PacienteFichaScreen';
 import CitasListadoScreen from '../screens/Citas/CitasListadoScreen';
 import CrearCitaScreen from '../screens/Citas/CrearCitaScreen';
 import EditarCitaScreen from '../screens/Citas/EditarCitaScreen';
+import DoctoresListadoScreen from '../screens/Doctores/DoctoresListadoScreen';
+import CrearDoctorScreen from '../screens/Doctores/CrearDoctorScreen';
 
 import NotasScreen from '../screens/Notas/NotasScreen';
 import PerfilScreen from '../screens/Perfil/PerfilScreen';
@@ -130,17 +135,47 @@ function PerfilStack() {
   );
 }
 
+function DoctoresStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#4F46E5',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: '600',
+        },
+      }}
+    >
+      <Stack.Screen
+        name="DoctoresListado"
+        component={DoctoresListadoScreen}
+        options={{ title: 'Doctores', headerShown: false }}
+      />
+      <Stack.Screen
+        name="CrearDoctor"
+        component={CrearDoctorScreen}
+        options={{ title: 'Nuevo Doctor' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
 // Main Navigation con Bottom Tabs
 export default function MainNavigator() {
+  const { darkMode } = useContext(AuthContext);
+  const theme = getTheme(darkMode);
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#4F46E5',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarActiveTintColor: '#6366F1',
+        tabBarInactiveTintColor: theme.sub,
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: '#E5E7EB',
+          backgroundColor: theme.card,
+          borderTopColor: theme.border,
           borderTopWidth: 1,
           paddingBottom: 5,
           paddingTop: 5,
@@ -172,6 +207,15 @@ export default function MainNavigator() {
         }}
       />
       <Tab.Screen
+        name="DoctoresTab"
+        component={DoctoresStack}
+        options={{
+          title: 'Doctores',
+          tabBarLabel: 'Doctores',
+          tabBarIcon: ({ color }) => <TabIcon icon="🩺" color={color} />,
+        }}
+      />
+      <Tab.Screen
         name="PerfilTab"
         component={PerfilStack}
         options={{
@@ -187,5 +231,3 @@ export default function MainNavigator() {
 function TabIcon({ icon, color }) {
   return <Text style={{ fontSize: 20, color }}>{icon}</Text>;
 }
-
-import { Text } from 'react-native';

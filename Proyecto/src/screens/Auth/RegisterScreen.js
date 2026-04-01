@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { AuthContext } from '../../utils/AuthContext';
 import { getTheme } from '../../utils/theme';
 
@@ -7,12 +7,33 @@ export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const { register, darkMode } = useContext(AuthContext);
   const theme = getTheme(darkMode);
 
+  const isEmailValid = (value) => /\S+@\S+\.\S+/.test(value);
+
   const handleRegister = async () => {
-    if (email && password && password === confirmPassword) {
+    if (!isEmailValid(email)) {
+      Alert.alert('Correo inválido', 'Ingresa un correo con formato válido.');
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert('Contraseña débil', 'Usa al menos 6 caracteres.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Contraseñas distintas', 'La confirmación debe coincidir con la contraseña.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
       await register(email, password);
+    } catch (error) {
+      Alert.alert('No se pudo registrar', error.message || 'Intenta con otro correo.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -50,8 +71,8 @@ export default function RegisterScreen({ navigation }) {
           secureTextEntry
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Registrarse</Text>
+        <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={submitting}>
+          <Text style={styles.buttonText}>{submitting ? 'Registrando...' : 'Registrarse'}</Text>
         </TouchableOpacity>
       </View>
     </View>

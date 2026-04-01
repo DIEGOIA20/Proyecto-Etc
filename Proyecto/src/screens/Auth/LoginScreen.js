@@ -1,17 +1,34 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { AuthContext } from '../../utils/AuthContext';
 import { getTheme } from '../../utils/theme';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const { login, darkMode } = useContext(AuthContext);
   const theme = getTheme(darkMode);
 
+  const isEmailValid = (value) => /\S+@\S+\.\S+/.test(value);
+
   const handleLogin = async () => {
-    if (email && password) {
+    if (!isEmailValid(email)) {
+      Alert.alert('Correo inválido', 'Ingresa un correo con formato válido.');
+      return;
+    }
+    if (!password) {
+      Alert.alert('Contraseña requerida', 'Ingresa tu contraseña para continuar.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
       await login(email, password);
+    } catch (error) {
+      Alert.alert('No se pudo iniciar sesión', error.message || 'Verifica tus credenciales.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -38,8 +55,8 @@ export default function LoginScreen({ navigation }) {
           secureTextEntry
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Iniciar Sesión</Text>
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={submitting}>
+          <Text style={styles.buttonText}>{submitting ? 'Ingresando...' : 'Iniciar Sesión'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>

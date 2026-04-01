@@ -1,20 +1,42 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from '../../utils/AuthContext';
 import { getTheme } from '../../utils/theme';
+import { getPatients } from '../../utils/database';
 
 export default function PacientesListadoScreen({ navigation }) {
   const { darkMode } = useContext(AuthContext);
   const theme = getTheme(darkMode);
-  const [pacientes, setPacientes] = useState([
-    { id: '1', nombre: 'Juan Pérez', edad: 35, telefono: '123456789' },
-    { id: '2', nombre: 'María García', edad: 28, telefono: '987654321' },
-  ]);
+  const [pacientes, setPacientes] = useState([]);
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const filteredPacientes = pacientes.filter(p =>
-    p.nombre.toLowerCase().includes(search.toLowerCase())
+  const loadPatients = useCallback(async (term = '') => {
+    try {
+      setLoading(true);
+      const rows = await getPatients(term);
+      setPacientes(rows);
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo cargar la lista de pacientes.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPatients(search);
+    }, [loadPatients, search])
   );
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      loadPatients(search);
+    }, 250);
+
+    return () => clearTimeout(timeoutId);
+  }, [search, loadPatients]);
 
   const renderPaciente = ({ item }) => (
     <TouchableOpacity
@@ -50,10 +72,15 @@ export default function PacientesListadoScreen({ navigation }) {
       />
 
       <FlatList
-        data={filteredPacientes}
-        keyExtractor={item => item.id}
+        data={pacientes}
+        keyExtractor={item => String(item.id)}
         renderItem={renderPaciente}
         contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <Text style={{ color: theme.sub, textAlign: 'center', marginTop: 24 }}>
+            {loading ? 'Cargando pacientes...' : 'No hay pacientes registrados.'}
+          </Text>
+        }
       />
     </View>
   );
@@ -63,15 +90,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    paddingTop: 12,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
   },
   addButton: {

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { AuthContext } from '../../utils/AuthContext';
 import { getTheme } from '../../utils/theme';
+import { updatePatient, deletePatient, getPatientById, getDoctors, getDoctorSpecialties } from '../../utils/database';
 
 export default function EditarPacienteScreen({ route, navigation }) {
   const { darkMode } = useContext(AuthContext);
@@ -10,17 +11,92 @@ export default function EditarPacienteScreen({ route, navigation }) {
   const [nombre, setNombre] = useState(paciente?.nombre || '');
   const [edad, setEdad] = useState(paciente?.edad?.toString() || '');
   const [telefono, setTelefono] = useState(paciente?.telefono || '');
-  const [email, setEmail] = useState('');
-  const [alergias, setAlergias] = useState('');
+  const [email, setEmail] = useState(paciente?.email || '');
+  const [alergias, setAlergias] = useState(paciente?.alergias || '');
+  const [especialidadPreferida, setEspecialidadPreferida] = useState(paciente?.especialidadPreferida || '');
+  const [doctorReferente, setDoctorReferente] = useState(paciente?.doctorReferente || '');
+  const [especialidades, setEspecialidades] = useState([]);
+  const [doctores, setDoctores] = useState([]);
+  const [fotoUri, setFotoUri] = useState(paciente?.fotoUri || '');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleActualizar = () => {
-    // Aquí iría la lógica para actualizar en BD local
-    navigation.goBack();
+  useEffect(() => {
+    const loadPatient = async () => {
+      if (!paciente?.id) {
+        return;
+      }
+      const full = await getPatientById(paciente.id);
+      if (!full) {
+        return;
+      }
+      setNombre(full.nombre || '');
+      setEdad(full.edad ? String(full.edad) : '');
+      setTelefono(full.telefono || '');
+      setEmail(full.email || '');
+      setAlergias(full.alergias || '');
+      setEspecialidadPreferida(full.especialidadPreferida || '');
+      setDoctorReferente(full.doctorReferente || '');
+      setFotoUri(full.fotoUri || '');
+    };
+
+    loadPatient();
+  }, [paciente?.id]);
+
+  useEffect(() => {
+    const loadDoctorsData = async () => {
+      const [specialtiesRows, doctorsRows] = await Promise.all([
+        getDoctorSpecialties({ onlyActive: true }),
+        getDoctors({ onlyActive: true }),
+      ]);
+      setEspecialidades(specialtiesRows);
+      setDoctores(doctorsRows);
+    };
+
+    loadDoctorsData();
+  }, []);
+
+  const handleActualizar = async () => {
+    if (!nombre.trim()) {
+      Alert.alert('Dato requerido', 'El nombre del paciente es obligatorio.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await updatePatient(paciente.id, {
+        nombre: nombre.trim(),
+        edad: edad.trim(),
+        telefono: telefono.trim(),
+        email: email.trim(),
+        alergias: alergias.trim(),
+        especialidadPreferida: especialidadPreferida.trim(),
+        doctorReferente: doctorReferente.trim(),
+        fotoUri: fotoUri.trim(),
+      });
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo actualizar el paciente.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleEliminar = () => {
-    // Aquí iría la lógica para eliminar de BD local
-    navigation.goBack();
+    Alert.alert('Eliminar paciente', 'Esta acción eliminará también citas y notas asociadas.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deletePatient(paciente.id);
+            navigation.popToTop();
+          } catch (error) {
+            Alert.alert('Error', 'No se pudo eliminar el paciente.');
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -66,8 +142,75 @@ export default function EditarPacienteScreen({ route, navigation }) {
           numberOfLines={4}
         />
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleActualizar}>
-          <Text style={styles.submitButtonText}>Actualizar Paciente</Text>
+        <Text style={[styles.label, { color: theme.text }]}>Especialidad Preferida</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
+          value={especialidadPreferida}
+          onChangeText={(value) => {
+            setEspecialidadPreferida(value);
+            setDoctorReferente('');
+          }}
+        />
+        {especialidadPreferida.length > 0 && (
+          <View style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 6, marginBottom: 8 }}>
+            {especialidades
+              .filter((item) => item.toLowerCase().includes(especialidadPreferida.toLowerCase()))
+              .slice(0, 5)
+              .map((item) => (
+                <TouchableOpacity
+                  key={item}
+                  onPress={() => {
+                    setEspecialidadPreferida(item);
+                    setDoctorReferente('');
+                  }}
+                  style={{ padding: 10, borderBottomWidth: 1, borderBottomColor: theme.border }}
+                >
+                  <Text style={{ color: theme.text }}>{item}</Text>
+                </TouchableOpacity>
+              ))}
+          </View>
+        )}
+
+        <Text style={[styles.label, { color: theme.text }]}>Doctor Referente</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
+          value={doctorReferente}
+          onChangeText={setDoctorReferente}
+        />
+        <View style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 6, marginBottom: 8 }}>
+          {doctores
+            .filter((item) => {
+              const bySpecialty = !especialidadPreferida.trim() || item.especialidad.toLowerCase() === especialidadPreferida.trim().toLowerCase();
+              const byName = !doctorReferente.trim() || item.nombre.toLowerCase().includes(doctorReferente.toLowerCase());
+              return bySpecialty && byName;
+            })
+            .slice(0, 5)
+            .map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                onPress={() => {
+                  setDoctorReferente(item.nombre);
+                  if (!especialidadPreferida) {
+                    setEspecialidadPreferida(item.especialidad);
+                  }
+                }}
+                style={{ padding: 10, borderBottomWidth: 1, borderBottomColor: theme.border }}
+              >
+                <Text style={{ color: theme.text }}>{item.nombre}</Text>
+                <Text style={{ color: theme.sub, fontSize: 12 }}>{item.especialidad}</Text>
+              </TouchableOpacity>
+            ))}
+        </View>
+
+        <Text style={[styles.label, { color: theme.text }]}>Foto (URI opcional)</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
+          value={fotoUri}
+          onChangeText={setFotoUri}
+        />
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleActualizar} disabled={submitting}>
+          <Text style={styles.submitButtonText}>{submitting ? 'Actualizando...' : 'Actualizar Paciente'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.deleteButton} onPress={handleEliminar}>
